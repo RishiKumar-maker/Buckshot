@@ -48,11 +48,16 @@ for(let v=0;v<4;v++){const K=new Kit(),E=new Kit(),skin=SK[v];
  G.box(.1,.2,.8,[0,-.06,.95],[.12,0,0],wd);G.box(.085,.2,.1,[0,-.2,.42],[.35,0,0],wd);G.box(.02,.07,.2,[0,-.16,.25],[0,0,0],st);G.box(.02,.04,.03,[0,.05,-1.28],[0,0,0],st);G.cyl(.055,.04,[0,0,-1.3],[Math.PI/2,0,0],0x1a1a18);
  P.box(.14,.13,.45,[0,0,0],[0,0,0],wd);for(let i=0;i<4;i++)P.box(.15,.02,.03,[0,0,-.15+i*.1],[0,0,0],0x2a1a10);
  const g=G.mesh('Gun'),p=P.mesh('Pump');p.position.set(0,-.095,-.62);await save('shotgun',g,p)}
-/* ---- desk tools: spyglass (Scan), tongs (Eject), cell (Charge), padlock (Ward), dial (Spin) ---- */
-{const br=0xb08a3e,sc=new Kit(),ej=new Kit(),ch=new Kit(),wa=new Kit(),sp=new Kit();
- sc.cyl(.06,.5,[0,.09,0],[0,0,Math.PI/2],br);sc.cyl(.075,.22,[-.22,.09,0],[0,0,Math.PI/2],0x3a241a);sc.cyl(.045,.22,[.32,.09,0],[0,0,Math.PI/2],br);sc.add(new THREE.TorusGeometry(.085,.015,6,16),[-.34,.09,0],[0,Math.PI/2,0],br);sc.cyl(.07,.015,[-.335,.09,0],[0,0,Math.PI/2],0x6aa0c0);sc.box(.08,.06,.06,[0,.03,0],[0,0,0],0x3a241a);
+/* ---- desk items: cigarettes, walkie-talkie, knife, hourglass, energy drink, tongs, padlock ---- */
+{const br=0xb08a3e,sm=new Kit(),ra=new Kit(),kn=new Kit(),rv=new Kit(),en=new Kit(),ej=new Kit(),wa=new Kit();
+ sm.box(.34,.12,.5,[0,.06,0],[0,0,0],0xb8302a);sm.box(.345,.125,.16,[0,.06,-.12],[0,0,0],0xe8e2d4);sm.box(.1,.03,.1,[0,.126,.1],[0,0,0],0x1a1a18);sm.cyl(.02,.32,[.07,.15,.12],[Math.PI/2,0,.12],0xe8e2d4);sm.cyl(.021,.05,[.09,.15,-.03],[Math.PI/2,0,.12],0xc0642a);
+ ra.box(.2,.1,.5,[0,.07,0],[0,0,0],0x2a2a28);ra.box(.12,.02,.1,[0,.13,-.12],[0,0,0],0x2a5a30);for(let i=0;i<5;i++)ra.box(.14,.012,.015,[0,.125,.05+i*.04],[0,0,0],0x111111);ra.cyl(.014,.38,[.07,.07,-.42],[Math.PI/2,0,0],0x14100f);ra.cyl(.03,.03,[-.06,.13,.22],[0,0,0],0xc0302a);ra.box(.04,.05,.14,[.11,.07,.1],[0,0,0],0x1a1a18);
+ kn.box(.13,.05,.34,[0,.04,.2],[0,0,0],0x7a1c18);kn.box(.075,.02,.42,[0,.045,-.17],[0,0,0],0xa8a8a2);for(let i=0;i<10;i++)kn.box(.03,.02,.022,[.05,.045,-.36+i*.04],[0,0,0],0x8a8a84);kn.cyl(.02,.06,[0,.07,.1],[0,0,0],0x3a3a36);
+ rv.cyl(.14,.03,[0,.015,0],[0,0,0],br);rv.cyl(.14,.03,[0,.435,0],[0,0,0],br);rv.add(new THREE.ConeGeometry(.11,.2,14),[0,.12,0],[0,0,0],0x9ad7c6);rv.add(new THREE.ConeGeometry(.11,.2,14),[0,.32,0],[Math.PI,0,0],0x9ad7c6);rv.add(new THREE.ConeGeometry(.07,.1,12),[0,.07,0],[0,0,0],0xe0b45a);for(let i=0;i<3;i++){const a=i*2.094;rv.cyl(.012,.4,[Math.cos(a)*.13,.225,Math.sin(a)*.13],[0,0,0],br)}
+ en.cyl(.1,.34,[0,.17,0],[0,0,0],0x14210f);en.cyl(.102,.12,[0,.17,0],[0,0,0],0xb5ff3c);en.cyl(.095,.02,[0,.35,0],[0,0,0],0xc9c9c4);en.box(.05,.01,.03,[0,.362,.03],[0,0,0],0x8a8a84);en.box(.03,.1,.01,[0,.19,.1],[0,0,.4],0x0a0a08);
  ej.box(.6,.025,.05,[0,.03,.04],[0,-.06,0],0x9a9a94);ej.box(.6,.025,.05,[0,.03,-.04],[0,.06,0],0x9a9a94);ej.cyl(.05,.12,[-.28,.04,0],[0,0,Math.PI/2],0xc0302a);ej.box(.05,.04,.02,[.3,.03,.02],[0,0,0],0x5a5a54);ej.cyl(.03,.03,[-.05,.04,0],[Math.PI/2,0,0],0x6a6a64);
- ch.cyl(.1,.42,[0,.1,0],[0,0,Math.PI/2],0x1c1c1a);ch.cyl(.103,.1,[.05,.1,0],[0,0,Math.PI/2],0xc0302a);ch.cyl(.04,.06,[.24,.1,0],[0,0,Math.PI/2],br);ch.box(.1,.02,.02,[-.1,.205,0],[0,0,0],0xe8e2d4);ch.box(.02,.02,.1,[-.1,.205,0],[0,0,0],0xe8e2d4);
  wa.box(.3,.26,.12,[0,.14,0],[0,0,0],0x7a7a74);wa.add(new THREE.TorusGeometry(.09,.025,6,14,Math.PI),[0,.27,0],[0,0,0],0x9a9a94);wa.cyl(.025,.03,[0,.15,.065],[Math.PI/2,0,0],0x050303);wa.box(.02,.08,.01,[0,.12,.065],[0,0,0],0x050303);
- sp.cyl(.26,.05,[0,.03,0],[0,0,0],br);sp.add(new THREE.TorusGeometry(.24,.02,6,24),[0,.06,0],[Math.PI/2,0,0],0x3a2a1a);for(let i=0;i<8;i++){const a=i*Math.PI/4;sp.cyl(.02,.07,[Math.cos(a)*.2,.07,Math.sin(a)*.2],[0,0,0],0x14100f)}sp.cyl(.06,.09,[0,.08,0],[0,0,0],0x5a5a54);
- await save('items',...[['SCAN',sc],['EJECT',ej],['CHARGE',ch],['WARD',wa],['SPIN',sp]].map(([t,k])=>k.mesh(t)))}
+ await save('items',...[['SMOKE',sm],['RADIO',ra],['KNIFE',kn],['REVERSE',rv],['ENERGY',en],['EJECT',ej],['WARD',wa]].map(([t,k])=>k.mesh(t)))}
+/* ---- item crate with a hinged lid ---- */
+{const C=new Kit(),L=new Kit(),wd=0x4a3422,dk=0x241810;C.box(1.1,.06,.8,[0,.03,0],[0,0,0],dk);C.box(1.1,.5,.06,[0,.25,.37],[0,0,0],wd);C.box(1.1,.5,.06,[0,.25,-.37],[0,0,0],wd);C.box(.06,.5,.8,[.52,.25,0],[0,0,0],wd);C.box(.06,.5,.8,[-.52,.25,0],[0,0,0],wd);for(let i=0;i<3;i++)C.box(1.12,.04,.08,[0,.1+i*.17,.4],[0,0,0],0x6a5038);
+ L.box(1.1,.05,.8,[0,0,.4],[0,0,0],wd);L.box(1.12,.06,.08,[0,.02,.7],[0,0,0],0x6a5038);const lid=L.mesh('Lid');lid.position.set(0,.5,-.4);await save('box',C.mesh('Crate'),lid)}
