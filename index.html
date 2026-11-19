@@ -29,14 +29,15 @@ h1{font:700 clamp(44px,9vw,110px)/.95 'Pixelify Sans',sans-serif;color:#fff;text
 @keyframes gr{25%{transform:translate(-3%,2%)}50%{transform:translate(2%,-3%)}75%{transform:translate(-2%,-1%)}}
 #hint{position:fixed;right:14px;bottom:50px;font-size:18px;opacity:.45;text-align:right;max-width:300px}
 #mute{position:fixed;right:14px;bottom:10px;z-index:3;font-size:20px}
-@media(max-width:700px){#log,#hint{display:none}}
+#views{position:fixed;left:14px;top:14px;display:flex;gap:6px}#views button{font-size:20px;background:#000a;color:#9a9a96;padding:2px 10px;border:1px solid #ffffff22}#views button.on{color:#fff;border-color:#e0b45a}
+@media(max-width:700px){#log,#hint{display:none}#views button{font-size:16px;padding:2px 6px}}
 @media(prefers-reduced-motion){#toast.s{animation-duration:.01s;opacity:1}#grain{animation:none}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"}}</script>
 </head><body>
 <canvas id=c></canvas><div id=vig></div><div id=grain></div><div id=hurt></div>
-<div id=hud hidden><div id=top><div id=sh></div></div><div id=toast></div><div id=log></div><div id=hint>Drag to look · WASD move · Q/E height · R recenter<br>Click your tools to use them</div><div id=bot><div id=acts></div></div></div>
+<div id=hud hidden><div id=top><div id=sh></div></div><div id=views><button data-v=seat class=on>1 SEAT</button><button data-v=items>2 MY ITEMS</button><button data-v=desk>3 WHOLE DESK</button></div><div id=toast></div><div id=log></div><div id=hint>Drag to look · WASD move · Q/E height<br>Keys 1 · 2 · 3 switch views<br>Click your tools to use them</div><div id=bot><div id=acts></div></div></div>
 <div id=tip hidden></div>
 <div id=menu><h1>MIRRORFALL</h1><p class=sub>A MULTIPLAYER GAME OF SHELLS<br>FOR TWO TO FOUR DUELISTS</p>
 <nav id=main><a data-a=start>START</a><a data-a=multi>MULTIPLAYER</a><a data-a=opts>OPTIONS</a><a data-a=cred>CREDITS</a><a data-a=exit>EXIT</a></nav>
@@ -69,7 +70,7 @@ const music=()=>{AC.resume();if(!mus&&B.music&&!mute)mus=sfx('music',1)};
 $('#mute').onclick=e=>{mute=!mute;e.target.textContent=mute?'Sound off':'Sound on';if(mute){mus&&mus.stop();mus=0}else music()};
 
 /* ---------- 3D scene: title shell field + the square-table room ---------- */
-let n=2,me=0,camZ=6.8,shake=0,hpv=[3,3],wd=[0,0],hit=[0,0,0,0],holder=-1,hover=-1,fireAim=-2,inMenu=true,cntV={L:0,B:0,M:0},rl=0,lastAp=-1,hov=null,yaw=0,pitch=-.46,drag=null,dn=null,recoil=0,pump=null,pumpZ=-.55,gunMat=null;
+let n=2,me=0,camZ=6.8,shake=0,hpv=[3,3],wd=[0,0],hit=[0,0,0,0],holder=-1,hover=-1,fireAim=-2,inMenu=true,cntV={L:0,B:0,M:0},rl=0,lastAp=-1,hov=null,yaw=0,pitch=-.46,drag=null,dn=null,recoil=0,pump=null,pumpZ=-.55,gunMat=null,vtok=0;
 const opt={px:true},keys={};
 const R=new THREE.WebGLRenderer({canvas:$('#c'),antialias:true,powerPreference:'high-performance'});
 R.toneMapping=THREE.ACESFilmicToneMapping;R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;
@@ -115,7 +116,7 @@ const SA={2:[0,180],3:[0,90,270],4:[0,90,180,270]},ang=s=>SA[n][s]*Math.PI/180,d
  seatPos=s=>dir(s).multiplyScalar(5.6),headPos=p=>seat(p)?seatPos(seat(p)).setY(2.7):cam.position,anchor=p=>dir(seat(p)).multiplyScalar(1.5).setY(1.95);
 /* diegetic LCDs: charge bolts per player, shell counter in the middle */
 function lcd(){const cv=document.createElement('canvas');cv.width=256;cv.height=96;const tx=new THREE.CanvasTexture(cv);tx.colorSpace=THREE.SRGBColorSpace;tx.magFilter=THREE.NearestFilter;const g=new THREE.Group();
- add(Mesh(new THREE.BoxGeometry(1.32,.57,.14),M(0x2a2824)),0,0,-.08,g).castShadow=true;add(Mesh(new THREE.PlaneGeometry(1.2,.45),new THREE.MeshBasicMaterial({map:tx,toneMapped:false})),0,0,0,g);g.scale.setScalar(1.5);gameRoot.add(g);return{g,c:cv.getContext('2d'),tx,key:''}}
+ add(Mesh(new THREE.BoxGeometry(1.32,.57,.14),M(0x2a2824)),0,0,-.08,g).castShadow=true;add(Mesh(new THREE.PlaneGeometry(1.2,.45),new THREE.MeshBasicMaterial({map:tx,toneMapped:false})),0,0,0,g);g.scale.setScalar(1.25);gameRoot.add(g);return{g,c:cv.getContext('2d'),tx,key:''}}
 const lcds=[0,1,2,3].map(lcd),lcdC=lcd(),F='VT323,monospace';
 function bolt(c,x,y,s,col){c.fillStyle=col;c.beginPath();[[8,0],[0,14],[6,14],[2,28],[14,10],[8,10],[12,0]].forEach(([a,b],i)=>c[i?'lineTo':'moveTo'](x+a*s,y+b*s));c.fill()}
 function drawHp(L,p){const c=L.c,hp=hpv[p]||0,mx=S?S.mx:3,tn=!!S&&S.turn===p&&!S.over,k=[hp,mx,S?S.wins[p]:0,wd[p],S?S.chg[p]:0,S?S.ext[p]:0,tn].join();if(k===L.key)return;L.key=k;
@@ -157,7 +158,7 @@ function arrive(p,o,delay){const from=crates[p].position.clone().add(V(0,.6,0));
 function syncItems(){for(let p=0;p<n;p++){const want=[...S.rel[p]],cur=items[p];for(let i=cur.length-1;i>=0;i--){const k=want.indexOf(cur[i].userData.type);if(k<0){gameRoot.remove(cur[i]);cur.splice(i,1)}else want.splice(k,1)}
  if(!want.length)continue;lidTo(p,-1.9);want.forEach((t,j)=>{const o=mkItem(t,p);cur.push(o);gameRoot.add(o);arrive(p,o,450+p*220+j*300)});setTimeout(()=>lidTo(p,0),450+p*220+want.length*300+900)}}
 function layout(){camZ=n>2?9.6:8.8;home();
- for(let p=0;p<4;p++){const L=lcds[p];L.g.visible=p<n;if(p<n){L.g.position.copy(dir(seat(p)).multiplyScalar(3.8)).setY(1.5);L.g.lookAt(0,5.6,camZ);L.key=''}}
+ for(let p=0;p<4;p++){const L=lcds[p];L.g.visible=p<n;if(p<n){const s=seat(p),a=ang(s);L.g.position.copy(dir(s).multiplyScalar(3.6).add(V(Math.cos(a),0,-Math.sin(a)).multiplyScalar(-3.1))).setY(1.35);L.g.lookAt(0,5.6,camZ);L.key=''}}
  lcdC.g.position.set(0,1.5,-1.9);lcdC.g.lookAt(0,5.6,camZ);lcdC.key='';lcdC.g.visible=false;crates.forEach((c,p)=>{c.visible=p<n;if(p<n){const s=seat(p),a=ang(s);c.position.copy(dir(s).multiplyScalar(3.55).add(V(Math.cos(a),0,-Math.sin(a)).multiplyScalar(3.2))).setY(.975);c.rotation.y=a+Math.PI}});
  for(let s=1;s<4;s++){const f=figs[s],p=(me+s)%n;f.visible=s<n;if(s<n){f.position.copy(seatPos(s));f.lookAt(0,0,0);f.userData.eyes.forEach(m=>m.emissive.set(COLS[p]));f.userData.sh.material.color.set(COLS[p]);dress(s,p)}}
  items.forEach(a=>{a.forEach(o=>gameRoot.remove(o));a.length=0});hpv=Array(n).fill(3);wd=Array(n).fill(0);holder=-1}
@@ -169,12 +170,17 @@ function burst(p,col,k,sp=3){const c=new THREE.Color(col);for(let j=0;j<k;j++){c
 const tw=(ms,f)=>new Promise(r=>{const s=performance.now();(function k(){const u=Math.min(1,(performance.now()-s)/ms);f(u);u<1?requestAnimationFrame(k):r()})()});
 /* free camera + picking */
 const cp=V(0,4.2,6.8),vd=V(0,0,0),qY=new THREE.Quaternion().setFromAxisAngle(V(0,1,0),Math.PI),ray=new THREE.Raycaster(),mp=new THREE.Vector2(),cv=$('#c');
-const home=()=>{cp.set(0,5.6,camZ);yaw=0;pitch=-.52},myTurn=()=>!!S&&S.turn===me&&!busy&&!S.over&&S.hp[me]>0;
-addEventListener('keydown',e=>{keys[e.code]=1;if(e.code==='KeyR')home()});addEventListener('keyup',e=>keys[e.code]=0);
+const home=()=>{vtok++;cp.set(0,5.6,camZ);yaw=0;pitch=-.52;markView('seat')},
+ VIEWS={seat:()=>[V(0,5.6,camZ),0,-.52],items:()=>[V(0,3.9,6.8),0,-.6],desk:()=>[V(0,11.5,4.6),0,-1.2]};
+function setView(k){const[p,y,pt]=VIEWS[k](),p0=cp.clone(),y0=Math.atan2(Math.sin(yaw),Math.cos(yaw)),pt0=pitch,id=++vtok;markView(k);yaw=y0;
+ tw(800,u=>{if(id!==vtok)return;const e=u*u*(3-2*u);cp.lerpVectors(p0,p,e);yaw=y0+(y-y0)*e;pitch=pt0+(pt-pt0)*e})}
+function markView(k){document.querySelectorAll('#views button').forEach(b=>b.classList.toggle('on',b.dataset.v===k))}
+const myTurn=()=>!!S&&S.turn===me&&!busy&&!S.over&&S.hp[me]>0;
+addEventListener('keydown',e=>{keys[e.code]=1;if(e.code==='KeyR'||e.code==='Digit1')setView('seat');if(e.code==='Digit2')setView('items');if(e.code==='Digit3')setView('desk');if(/^(Key[WASDQE]|Arrow)/.test(e.code))vtok++});addEventListener('keyup',e=>keys[e.code]=0);
 function pickItem(e){if(!myTurn())return null;mp.set(e.clientX/innerWidth*2-1,-e.clientY/innerHeight*2+1);ray.setFromCamera(mp,cam);const h=ray.intersectObjects(items[me].filter(o=>!o.userData.fly),true)[0];if(!h)return null;let o=h.object;while(o&&!o.userData.type)o=o.parent;return o}
 cv.addEventListener('pointerdown',e=>{drag=dn=[e.clientX,e.clientY]});
 addEventListener('pointerup',e=>{if(dn&&Math.hypot(e.clientX-dn[0],e.clientY-dn[1])<6&&e.target===cv){const o=pickItem(e);if(o)go({t:'r',r:o.userData.type})}drag=dn=null});
-addEventListener('pointermove',e=>{if(drag){yaw-=(e.clientX-drag[0])*.004;pitch=Math.max(-1.4,Math.min(1.1,pitch-(e.clientY-drag[1])*.004));drag=[e.clientX,e.clientY];return}
+addEventListener('pointermove',e=>{if(drag){vtok++;yaw-=(e.clientX-drag[0])*.004;pitch=Math.max(-1.4,Math.min(1.1,pitch-(e.clientY-drag[1])*.004));drag=[e.clientX,e.clientY];return}
  const o=!inMenu&&e.target===cv?pickItem(e):null,tp=$('#tip');hov=o;tp.hidden=!o;if(o){tp.textContent=RL[o.userData.type].join(' · ');tp.style.left=e.clientX+14+'px';tp.style.top=e.clientY+14+'px'}cv.style.cursor=o?'pointer':'grab'});
 function fit(){const w=innerWidth,h=innerHeight;PR=opt.px?Math.min(1,560/h):Math.min(devicePixelRatio,1.5);R.setPixelRatio(PR);comp.setPixelRatio(PR);R.setSize(w,h);comp.setSize(w,h);DP.uniforms.res.value.set(w*PR,h*PR);cam.aspect=w/h;cam.updateProjectionMatrix()}addEventListener('resize',fit);fit();
 const T=new THREE.Timer();
@@ -196,7 +202,7 @@ R.setAnimationLoop(()=>{T.update();const dt=Math.min(T.getDelta(),.1),t=T.getEla
  items.forEach((a,p)=>a.forEach((o,i)=>{if(o.userData.fly)return;o.position.lerp(slotPos(p,i),Math.min(1,dt*5));o.scale.setScalar(o.scale.x+((o===hov?1.25:1)-o.scale.x)*Math.min(1,dt*10))}));
  for(let i=0;i<N;i++){if(pl[i]<=0){pp[i*3+1]=-99;continue}pl[i]-=dt*1.1;for(let a=0;a<3;a++){pp[i*3+a]+=pv[i*3+a]*dt;pc[i*3+a]=pb[i*3+a]*Math.max(pl[i],0)}pv[i*3+1]-=5*dt}pg.attributes.position.needsUpdate=pg.attributes.color.needsUpdate=true;
  const sp=(keys.ShiftLeft?6:3)*dt,fw=(keys.KeyW||keys.ArrowUp?1:0)-(keys.KeyS||keys.ArrowDown?1:0),rt=(keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0),ud=(keys.KeyE?1:0)-(keys.KeyQ?1:0);
- cp.x+=(-Math.sin(yaw)*fw+Math.cos(yaw)*rt)*sp;cp.z+=(-Math.cos(yaw)*fw-Math.sin(yaw)*rt)*sp;cp.y=Math.max(1.6,Math.min(9,cp.y+ud*sp));const rr=Math.hypot(cp.x,cp.z);if(rr>11){cp.x*=11/rr;cp.z*=11/rr}
+ cp.x+=(-Math.sin(yaw)*fw+Math.cos(yaw)*rt)*sp;cp.z+=(-Math.cos(yaw)*fw-Math.sin(yaw)*rt)*sp;cp.y=Math.max(1.6,Math.min(14,cp.y+ud*sp));const rr=Math.hypot(cp.x,cp.z);if(rr>11){cp.x*=11/rr;cp.z*=11/rr}
  const sk=RM?0:shake;shake*=.9;cam.position.set(cp.x+(Math.random()-.5)*sk,cp.y+(Math.random()-.5)*sk,cp.z);cam.rotation.set(pitch,yaw,0,'YXZ');comp.render()});
 /* shells drop onto the table (red live, blue blank, silver mirror), hold, then fly into the shotgun one by one */
 async function loadShells(cn){const types=[...'L'.repeat(cn.L),...'M'.repeat(cn.M),...'B'.repeat(cn.B)],k=types.length,P=i=>V((i-(k-1)/2)*.45,1.33,0);
@@ -307,4 +313,5 @@ $('#main').onclick=e=>{const a=e.target.dataset.a;if(!a)return;AC.resume();sfx('
  if(a==='exit'){$('#bye').hidden=false;try{close()}catch{}return}
  Object.values(PN).forEach(p=>$(p).hidden=true);$(PN[a]).hidden=false};
 $('#opx').onclick=e=>{opt.px=!opt.px;DP.enabled=opt.px;fit();e.target.textContent='PIXEL LOOK: '+(opt.px?'ON':'OFF')};
+$('#views').onclick=e=>{const v=e.target.dataset.v;if(v)setView(v)};
 </script></body></html>
