@@ -44,21 +44,49 @@ html,body{height:100%;overscroll-behavior:none}body{height:100vh;height:100dvh;-
 .pn input[type=range]{width:min(60vw,240px);padding:0;accent-color:#e0b45a}.pn label{display:grid;gap:2px}.pn select{font:inherit;background:#111;color:#fff;border:1px solid #ffffff40;padding:6px;max-width:60vw}
 #acts button.armed{outline:3px solid #fff;filter:brightness(1.3)}
 @media(pointer:coarse){#grain{display:none}#hint{font-size:16px}#acts button{font-size:22px;padding:6px 16px}}
+/* all buttons: white */
+button,.pn button,#views button,#acts button,#fs,#mute{background:#fff;color:#000;border:0;border-radius:0;font-family:'VT323',monospace;font-size:24px;letter-spacing:.06em;text-transform:uppercase;padding:6px 18px;min-height:42px;cursor:pointer;filter:none;clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);transition:background .12s,transform .08s}
+button:hover:not(:disabled),.pn button:hover:not(:disabled),#views button:hover:not(:disabled),#acts button:hover:not(:disabled),#fs:hover,#mute:hover{background:#d6d6d6;color:#000;filter:none}
+button:active:not(:disabled){transform:scale(.96)}
+button:disabled,#acts button:disabled{background:#fff;color:#000;opacity:.3}
+#acts button{font-size:26px;padding:6px 22px}#shoot{font-size:34px!important;padding:8px 46px!important}
+#views button,#fs,#mute{font-size:20px;padding:2px 12px;min-height:36px;border:0}
+#views button.on,#acts button.armed{background:#000;color:#fff;outline:0;filter:none;box-shadow:inset 0 0 0 2px #fff}
+/* aim and shoot */
+#xh{position:fixed;left:0;top:0;width:0;height:0;z-index:4}
+#xh::before{content:'';position:absolute;left:-26px;top:-26px;width:52px;height:52px;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #000a,inset 0 0 0 1px #000a;transition:all .15s}
+#xh::after{content:'';position:absolute;left:-1px;top:-1px;width:3px;height:3px;background:#fff;box-shadow:0 -36px #fff,0 36px #fff,-36px 0 #fff,36px 0 #fff}
+#xh.lock::before{left:-19px;top:-19px;width:38px;height:38px;border-width:3px;background:#ffffff22}
+#xl{position:fixed;left:0;top:0;z-index:4;padding:0 8px;background:#fff;color:#000;font-size:20px;white-space:nowrap;margin:44px 0 0 -40px;letter-spacing:.06em}
+#selfzone{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(70vw,520px);height:22vh;display:flex;align-items:flex-end;justify-content:center;padding-bottom:72px;border-top:2px dashed #fff8;color:#fff;opacity:.55;font-size:20px;letter-spacing:.1em;z-index:3}
+#selfzone[hidden],#xh[hidden],#xl[hidden]{display:none}
+/* mobile-friendly title menu: title left, menu right, panels replace the menu */
+#menu{display:grid;grid-template-columns:1.1fr 1fr;align-items:center;gap:3vw;padding:max(3vh,env(safe-area-inset-top)) max(5vw,env(safe-area-inset-right)) max(3vh,env(safe-area-inset-bottom)) max(6vw,env(safe-area-inset-left));overflow-y:auto;-webkit-overflow-scrolling:touch;background:linear-gradient(90deg,#000b,#0003 65%,#0000)}
+#brand h1{font-size:clamp(34px,12vh,104px);overflow-wrap:anywhere}
+#side{display:grid;gap:10px;align-content:center;justify-items:start;min-width:0;width:100%}
+#main[hidden]{display:none}#main a{min-height:44px;display:flex;align-items:center;font-size:clamp(26px,7vh,40px)}
+.pn{margin-top:0;width:100%;max-width:none}.pn input:not([type=range]){min-height:42px;font-size:24px;width:100%}
+.pn .row{display:grid;grid-template-columns:1fr auto;width:100%}
+.pn .back{background:#000;color:#fff;box-shadow:inset 0 0 0 2px #fff}
+#gm{position:fixed;top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right))}
+#gmenu{position:fixed;top:calc(max(12px,env(safe-area-inset-top)) + 46px);right:max(12px,env(safe-area-inset-right));display:grid;gap:6px;z-index:5}
+#gmenu[hidden],#mute[hidden]{display:none}
+@media(max-height:480px){.sub{display:none}.pn button{min-height:38px}.pn{gap:6px}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"}}</script>
 </head><body>
 <canvas id=c></canvas><div id=vig></div><div id=grain></div><div id=hurt></div>
-<div id=hud hidden><div id=top><div id=sh></div></div><button id=fs hidden>FULLSCREEN</button><div id=views><button data-v=seat class=on>1 SEAT</button><button data-v=items>2 MY ITEMS</button><button data-v=desk>3 WHOLE DESK</button></div><div id=toast></div><div id=log></div><div id=hint></div><div id=bot><div id=acts></div></div></div>
+<div id=hud hidden><div id=top><div id=sh></div></div><button id=gm>MENU</button><div id=gmenu hidden><button id=gsnd>SOUND: ON</button><button id=gq>QUALITY</button><button id=gfs>FULLSCREEN</button><button id=gleave>LEAVE GAME</button></div><div id=views><button data-v=seat class=on>1 SEAT</button><button data-v=items>2 MY ITEMS</button><button data-v=desk>3 WHOLE DESK</button></div><div id=xh hidden></div><div id=xl hidden></div><div id=selfzone hidden>AIM HERE TO TARGET YOURSELF</div><div id=toast></div><div id=log></div><div id=hint></div><div id=bot><div id=acts></div></div></div>
 <div id=tip hidden></div>
-<div id=menu><h1>MIRRORFALL</h1><p class=sub>A MULTIPLAYER GAME OF SHELLS<br>FOR TWO TO FOUR DUELISTS</p>
-<nav id=main><a data-a=start>START</a><a data-a=multi>MULTIPLAYER</a><a data-a=opts>OPTIONS</a><a data-a=cred>CREDITS</a><a data-a=exit>EXIT</a></nav>
-<div id=p-multi class=pn hidden><div class=row><button id=host>HOST A DUEL</button><span>or</span><input id=code maxlength=4 placeholder=CODE aria-label="Room code"><button id=join>JOIN</button></div><button id=start hidden>START THE DUEL</button></div>
-<div id=p-opts class=pn hidden><label>SOUND EFFECTS<input type=range id=vs min=0 max=100></label><label>MUSIC<input type=range id=vm min=0 max=100></label>
+<div id=menu><div id=brand><h1>MIRRORFALL</h1><p class=sub>A MULTIPLAYER GAME OF SHELLS<br>FOR TWO TO FOUR DUELISTS</p></div>
+<div id=side><nav id=main><a data-a=start>START</a><a data-a=multi>MULTIPLAYER</a><a data-a=opts>OPTIONS</a><a data-a=cred>CREDITS</a><a data-a=exit>EXIT</a></nav>
+<div id=p-multi class=pn hidden><button class=back>BACK</button><button id=host>HOST A DUEL</button><button id=share hidden>SHARE INVITE</button><div class=row><input id=code maxlength=4 placeholder=CODE aria-label="Room code" autocomplete=off autocapitalize=characters spellcheck=false><button id=join>JOIN</button></div><button id=start hidden>START THE DUEL</button></div>
+<div id=p-opts class=pn hidden><button class=back>BACK</button><label>SOUND EFFECTS<input type=range id=vs min=0 max=100></label><label>MUSIC<input type=range id=vm min=0 max=100></label>
 <div class=row><select id=snd aria-label="Sound test"></select><button id=sndp>PLAY</button></div><p id=snds></p>
-<button id=opx>PIXEL LOOK: ON</button><button id=oq>QUALITY: HIGH</button><button id=ofs>FULLSCREEN</button><p>START plays against two bots.</p></div>
-<div id=p-cred class=pn hidden><p>HOW TO PLAY: fire at anyone alive, or at yourself. LIVE shells wound. BLANKS do nothing, and a blank fired at yourself keeps your turn. MIRROR shells bounce the wound onto someone else. Click the tools on your edge of the table to use them. Last duelist standing wins the round; two rounds win the duel.</p><p>Made with three.js and PeerJS.</p></div>
-<p id=st></p><p id=bye hidden>You can close this tab now.</p></div>
+<button id=opx>PIXEL LOOK: ON</button><button id=oq>QUALITY: HIGH</button><button id=ofs>FULLSCREEN</button></div>
+<div id=p-cred class=pn hidden><button class=back>BACK</button><p>FIRE at anyone alive, or at yourself. LIVE shells wound. BLANKS do nothing, and a blank fired at yourself keeps your turn. MIRROR shells bounce the wound onto someone else. Last duelist standing wins the round; two rounds win the duel.</p><p>ITEMS: Cigarette +1 charge · Walkie-talkie hear the next shell · Knife next hit deals 2 · Hourglass reverse the shell order · Energy drink keep your turn after your next shot · Tongs pull out the next shell · Padlock block the next hit · Magnet steal a random item.</p><p>Made with three.js and PeerJS.</p></div>
+<p id=st></p><p id=bye hidden>You can close this tab now.</p></div></div>
 <div id=rot>ROTATE YOUR DEVICE<br><small>Mirrorfall plays in landscape</small></div>
 <button id=mute>Sound on</button>
 <script type="module">
@@ -94,7 +122,7 @@ function music(){AC.resume();if(mute)return;const want=inMenu?'music_menu':'musi
 $('#mute').onclick=e=>{mute=!mute;e.target.textContent=mute?'Sound off':'Sound on';if(mute){if(mus)try{mus.stop()}catch{}mus=null;curTrack=''}else music()};
 
 /* ---------- 3D scene: title shell field + the square-table room ---------- */
-let n=2,me=0,camZ=6.8,shake=0,hpv=[3,3],wd=[0,0],hit=[0,0,0,0],holder=-1,hover=-1,fireAim=-2,inMenu=true,cntV={L:0,B:0,M:0},rl=0,lastAp=-1,hov=null,yaw=0,pitch=-.46,drag=null,dn=null,recoil=0,pump=null,pumpZ=-.55,gunMat=null,vtok=0,ceil=null,gaze=[],lookT=0,lastLook='',TOUCH=false,armed=-1,armedItem=null,stealMode=false;
+let n=2,me=0,camZ=6.8,shake=0,hpv=[3,3],wd=[0,0],hit=[0,0,0,0],holder=-1,hover=-1,fireAim=-2,inMenu=true,cntV={L:0,B:0,M:0},rl=0,lastAp=-1,hov=null,yaw=0,pitch=-.46,drag=null,dn=null,recoil=0,pump=null,pumpZ=-.55,gunMat=null,vtok=0,ceil=null,gaze=[],lookT=0,lastLook='',TOUCH=false,armed=-1,armedItem=null,stealMode=false,aimMode=false,aimXY=[0,0],aimLock=-2,aimPt=null,aimDrag=false,curView='seat',lpT=0,lpO=null;
 const MOBILE=matchMedia('(pointer:coarse)').matches||/Android|iPhone|iPad/i.test(navigator.userAgent),opt={px:true,low:MOBILE};
 const R=new THREE.WebGLRenderer({canvas:$('#c'),antialias:!MOBILE,powerPreference:'high-performance'});
 R.toneMapping=THREE.ACESFilmicToneMapping;R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;
@@ -198,17 +226,29 @@ const home=()=>{vtok++;cp.set(0,5,camZ);yaw=0;pitch=-.5;markView('seat')},
  VIEWS={seat:()=>[V(0,5,camZ),0,-.5],items:()=>[V(0,3.6,6),0,-.66],desk:()=>[V(0,10.2,4),0,-1.2]};
 function setView(k){const[p,y,pt]=VIEWS[k](),p0=cp.clone(),y0=Math.atan2(Math.sin(yaw),Math.cos(yaw)),pt0=pitch,id=++vtok;markView(k);yaw=y0;
  tw(800,u=>{if(id!==vtok)return;const e=u*u*(3-2*u);cp.lerpVectors(p0,p,e);yaw=y0+(y-y0)*e;pitch=pt0+(pt-pt0)*e})}
-function markView(k){document.querySelectorAll('#views button').forEach(b=>b.classList.toggle('on',b.dataset.v===k))}
+function markView(k){curView=k;document.querySelectorAll('#views button').forEach(b=>b.classList.toggle('on',b.dataset.v===k))}
 const myTurn=()=>!!S&&S.turn===me&&!busy&&!S.over&&S.hp[me]>0;
-addEventListener('keydown',e=>{if(e.code==='KeyR'||e.code==='Digit1')setView('seat');if(e.code==='Digit2')setView('items');if(e.code==='Digit3')setView('desk')});
-function pickItem(e){if(!myTurn())return null;mp.set(e.clientX/innerWidth*2-1,-e.clientY/innerHeight*2+1);ray.setFromCamera(mp,cam);const h=ray.intersectObjects(items[me].filter(o=>!o.userData.fly),true)[0];if(!h)return null;let o=h.object;while(o&&!o.userData.type)o=o.parent;return o}
+addEventListener('keydown',e=>{if(e.code==='KeyR'||e.code==='Digit1')setView('seat');if(e.code==='Digit2')setView('items');if(e.code==='Digit3')setView('desk');if(e.code==='KeyF')toggleAim();if(e.code==='Space'&&aimMode){e.preventDefault();shootNow()}if(e.code==='Escape'&&aimMode)toggleAim(false)});
+function pickItem(e,any){if(!any&&!myTurn())return null;mp.set(e.clientX/innerWidth*2-1,-e.clientY/innerHeight*2+1);ray.setFromCamera(mp,cam);const h=ray.intersectObjects(items[me].filter(o=>!o.userData.fly),true)[0];if(!h)return null;let o=h.object;while(o&&!o.userData.type)o=o.parent;return o}
 function showTip(o,e,t){const tp=$('#tip');tp.hidden=false;tp.textContent=RL[o.userData.type].join(' · ')+(t?'  (tap again to use)':'');tp.style.left=Math.max(4,Math.min(e.clientX+14,innerWidth-280))+'px';tp.style.top=e.clientY+14+'px'}
 const tipOff=()=>{$('#tip').hidden=true};
+/* aim and shoot: steer a crosshair over the scene, it locks onto a player (or yourself in the bottom zone), SHOOT fires */
+const aimTo=e=>{aimXY=[e.clientX,e.clientY-(e.pointerType==='touch'?64:0)]};
+function aimUI(){$('#xl').textContent=aimLock===-2?'NO TARGET':aimLock===me?'YOURSELF':'PLAYER '+(aimLock+1);$('#xh').classList.toggle('lock',aimLock>-2)}
+function updateAim(){mp.set(aimXY[0]/innerWidth*2-1,-aimXY[1]/innerHeight*2+1);ray.setFromCamera(mp,cam);aimPt=ray.ray.at(10,new THREE.Vector3());
+ let lk=-2,bd=1.15;for(let p=0;p<n;p++){if(p===me||!(S&&S.hp[p]>0))continue;const d=ray.ray.distanceToPoint(headPos(p));if(d<bd){bd=d;lk=p}}
+ if(lk===-2&&aimXY[1]>innerHeight*.78)lk=me;
+ if(lk!==aimLock){aimLock=lk;if(lk>-2)sfx('lock');aimUI();renderActs()}
+ const tr=`translate(${aimXY[0]}px,${aimXY[1]}px)`;$('#xh').style.transform=tr;$('#xl').style.transform=tr}
+function toggleAim(on){on=on===undefined?!aimMode:on;if(on&&!myTurn())return;aimMode=on;aimLock=-2;aimPt=null;hover=-1;
+ if(on){if(!/seat|desk/.test(curView))setView('seat');if(!aimXY[0])aimXY=[innerWidth/2,innerHeight*.4]}
+ $('#xh').hidden=$('#xl').hidden=$('#selfzone').hidden=!on;renderActs();if(on){aimUI();updateAim()}}
+function shootNow(){if(!aimMode||aimLock===-2||!myTurn())return;const t=aimLock;toggleAim(false);go({t:'f',to:t})}
 addEventListener('pointerdown',e=>{TOUCH=e.pointerType==='touch'},true);
-cv.addEventListener('pointerdown',e=>{if(!e.isPrimary)return;drag=dn=[e.clientX,e.clientY]});
-addEventListener('pointerup',e=>{if(dn&&Math.hypot(e.clientX-dn[0],e.clientY-dn[1])<8&&e.target===cv){const o=pickItem(e);
- if(o){if(TOUCH&&armedItem!==o){armedItem=hov=o;showTip(o,e,true)}else{armedItem=null;tipOff();useIt(o.userData.type)}}else if(TOUCH){armedItem=hov=null;tipOff();if(armed>=0){armed=-1;hover=-1;renderActs()}}}drag=dn=null});
-addEventListener('pointermove',e=>{if(drag){vtok++;yaw=Math.max(-1.2,Math.min(1.2,yaw-(e.clientX-drag[0])*.005));pitch=Math.max(-1.45,Math.min(.35,pitch-(e.clientY-drag[1])*.005));drag=[e.clientX,e.clientY];return}
+cv.addEventListener('pointerdown',e=>{if(!e.isPrimary)return;if(aimMode){aimTo(e);dn=[e.clientX,e.clientY];drag=null;aimDrag=true;return}drag=dn=[e.clientX,e.clientY];if(e.pointerType==='touch'){const o=pickItem(e,true);if(o)lpT=setTimeout(()=>{lpO=o;showTip(o,e,false)},450)}});
+addEventListener('pointerup',e=>{if(aimMode){aimDrag=false;if(!TOUCH&&dn&&e.target===cv&&aimLock>-2&&Math.hypot(e.clientX-dn[0],e.clientY-dn[1])<8)shootNow();dn=drag=null;return}clearTimeout(lpT);if(lpO){lpO=null;tipOff();drag=dn=null;return}if(dn&&Math.hypot(e.clientX-dn[0],e.clientY-dn[1])<8&&e.target===cv){const o=pickItem(e);
+ if(o){tipOff();useIt(o.userData.type)}}drag=dn=null});
+addEventListener('pointermove',e=>{if(aimMode){if(e.target===cv&&(e.pointerType!=='touch'||aimDrag))aimTo(e);return}if(drag){clearTimeout(lpT);vtok++;yaw=Math.max(-1.2,Math.min(1.2,yaw-(e.clientX-drag[0])*.005));pitch=Math.max(-1.45,Math.min(.35,pitch-(e.clientY-drag[1])*.005));drag=[e.clientX,e.clientY];return}
  if(e.pointerType==='touch')return;const o=!inMenu&&e.target===cv?pickItem(e):null;hov=o;if(o)showTip(o,e,false);else tipOff();cv.style.cursor=o?'pointer':'grab'});
 function fit(){const w=innerWidth,h=innerHeight;PR=opt.px?Math.min(1,(opt.low?420:560)/h):Math.min(devicePixelRatio,opt.low?1:1.5);R.setPixelRatio(PR);comp.setPixelRatio(PR);R.setSize(w,h);comp.setSize(w,h);DP.uniforms.res.value.set(w*PR,h*PR);cam.aspect=w/h;cam.updateProjectionMatrix()}addEventListener('resize',fit);fit();
 const T=new THREE.Timer();
@@ -216,8 +256,9 @@ R.setAnimationLoop(()=>{T.update();if(innerHeight>innerWidth)return;const dt=Mat
  if(inMenu){shellField(t);cam.position.set(Math.sin(t*.1)*.4,Math.cos(t*.13)*.25,2);cam.rotation.set(0,0,0);comp.render();return}
  /* shotgun: flies to whoever holds it, aims at the hovered or fired-at player */
  const hA=holder>=0?anchor(holder):V(0,1.5,0);gunG.position.lerp(hA,Math.min(1,dt*3));rig.position.y=Math.min(gunG.position.distanceTo(hA),3)*.45;rig.position.z=recoil;rig.rotation.x=recoil*.25;recoil*=.88;muz.intensity*=.84;if(gunMat)gunMat.emissiveIntensity+=((S&&S.chg.some(x=>x)?.7:0)-gunMat.emissiveIntensity)*Math.min(1,dt*5);
- const ap=fireAim>-2?fireAim:(hover>=0&&myTurn()?hover:-1);let yT=0,pT=0;
- if(ap>=0){const d=headPos(ap).clone().sub(gunG.position);yT=Math.atan2(-d.x,-d.z);pT=Math.atan2(d.y,Math.hypot(d.x,d.z))}else if(holder>=0){yT=ang(seat(holder));pT=.12}
+ if(aimMode){if(myTurn())updateAim();else toggleAim(false)}
+ const ap=fireAim>-2?fireAim:aimMode?aimLock:(hover>=0&&myTurn()?hover:-1);let yT=0,pT=0;
+ if(ap>=0){const d=headPos(ap).clone().sub(gunG.position);yT=Math.atan2(-d.x,-d.z);pT=Math.atan2(d.y,Math.hypot(d.x,d.z))}else if(aimMode&&aimPt){const d=aimPt.clone().sub(gunG.position);yT=Math.atan2(-d.x,-d.z);pT=Math.atan2(d.y,Math.hypot(d.x,d.z))}else if(holder>=0){yT=ang(seat(holder));pT=.12}
  let dy=yT-gunG.rotation.y;dy=Math.atan2(Math.sin(dy),Math.cos(dy));gunG.rotation.y+=dy*Math.min(1,dt*(ap>=0?9:5));gunG.rotation.x+=(pT-gunG.rotation.x)*Math.min(1,dt*6);
  if(ap>=0)lastAp=ap;rl=ap>=0?Math.min(1,rl+dt*3.2):Math.max(0,rl-dt*5);ret.visible=rl>.01&&lastAp>=0;
  if(ret.visible){if(lastAp===me){cam.getWorldDirection(vd);ret.position.copy(cam.position).addScaledVector(vd,2.2);ret.position.y-=.25;ret.scale.setScalar(.55*(1+(1-rl)*1.6))}else{ret.position.copy(headPos(lastAp));ret.scale.setScalar(1.3*(1+(1-rl)*1.6))}ret.material.opacity=rl;ret.material.rotation=(1-rl)*4+Math.sin(t*5)*.04}
@@ -318,26 +359,27 @@ async function play(e){switch(e.k){
  case 'end':{const w=e.w===me;toast(w?'Victory':nm(e.w)+' wins',w?'var(--you)':hex(COLS[e.w]));sfx(w?'round_win':'round_lose');await sleep(1500)}}}
 const foesWithItems=()=>[...Array(n).keys()].filter(p=>p!==me&&S&&S.hp[p]>0&&S.rel[p].length);
 function useIt(t){if(t==='MAGNET'){if(!foesWithItems().length){toast('Nobody has items','var(--blank)');return}stealMode=true;renderActs();return}go({t:'r',r:t})}
-function hud(){if(!S)return;syncItems();hover=-1;armed=-1;armedItem=null;stealMode=false;tipOff();
+function hud(){if(!S)return;syncItems();hover=-1;armed=-1;armedItem=null;stealMode=false;tipOff();if(aimMode)toggleAim(false);
  const alive=S.hp[me]>0,my=S.turn===me&&!S.over&&alive;
- $('#sh').innerHTML=`<div class=tn>${S.over?(S.wins[me]>1?'YOU WIN THE DUEL':nm(S.wins.indexOf(2)).toUpperCase()+' WINS THE DUEL'):!alive?'YOU ARE DEAD. WATCHING…':my?(TOUCH?'YOUR TURN: TAP AN ITEM TWICE, OR AIM THEN FIRE':'YOUR TURN: CLICK A TOOL ON YOUR EDGE, OR CHOOSE A TARGET'):nm(S.turn).toUpperCase()+' HAS THE SHOTGUN'}${my&&S.pk?' · NEXT SHELL: '+NAME[S.pk].toUpperCase():''}</div>`;renderActs()}
-function renderActs(){if(!S)return;const alive=S.hp[me]>0,my=S.turn===me&&!S.over&&alive,foes=[...Array(n).keys()].filter(p=>p!==me&&S.hp[p]>0),en=my&&!busy?'':'disabled';
- $('#acts').innerHTML=S.over?'<button id=again>PLAY AGAIN</button>':!alive?'':stealMode?foesWithItems().map(p=>`<button data-s=${p} style="background:${hex(COLS[p])}">STEAL FROM PLAYER ${p+1} (${S.rel[p].length})</button>`).join('')+'<button id=cancel style="background:#8a8a84">CANCEL</button>'
- :foes.map(p=>`<button data-t=${p} class="${armed===p?'armed':''}" style="background:${hex(COLS[p])}" ${en}>${armed===p?'TAP AGAIN: FIRE AT':'FIRE AT'} PLAYER ${p+1}</button>`).join('')+`<button data-t=${me} class="${armed===me?'armed':''}" style="background:#d8d0b8" ${en}>${armed===me?'TAP AGAIN: FIRE AT':'FIRE AT'} YOURSELF</button>`}
+ $('#sh').innerHTML=`<div class=tn>${S.over?(S.wins[me]>1?'YOU WIN THE DUEL':nm(S.wins.indexOf(2)).toUpperCase()+' WINS THE DUEL'):!alive?'YOU ARE DEAD. WATCHING…':my?(TOUCH?'YOUR TURN: TAP AN ITEM, OR CHOOSE A TARGET':'YOUR TURN: CLICK A TOOL ON YOUR EDGE, OR CHOOSE A TARGET'):nm(S.turn).toUpperCase()+' HAS THE SHOTGUN'}${my&&S.pk?' · NEXT SHELL: '+NAME[S.pk].toUpperCase():''}</div>`;renderActs()}
+function renderActs(){if(!S)return;const alive=S.hp[me]>0,my=S.turn===me&&!S.over&&alive,foes=[...Array(n).keys()].filter(p=>p!==me&&S.hp[p]>0),en=my&&!busy?'':'disabled',lab=(p,t)=>(armed===p?'TAP AGAIN: ':'')+t;
+ $('#acts').innerHTML=S.over?'<button id=again>PLAY AGAIN</button>':!alive?'':aimMode?`<button id=shoot ${aimLock===-2?'disabled':''}>SHOOT</button><button id=cancel>CANCEL</button>`
+ :stealMode?foesWithItems().map(p=>`<button data-s=${p}>STEAL FROM PLAYER ${p+1} (${S.rel[p].length})</button>`).join('')+'<button id=cancel>CANCEL</button>'
+ :`<button id=aim ${en}>AIM</button>`+foes.map(p=>`<button data-t=${p} class="${armed===p?'armed':''}" ${en}>${lab(p,'FIRE AT PLAYER '+(p+1))}</button>`).join('')+`<button data-t=${me} class="${armed===me?'armed':''}" ${en}>${lab(me,'FIRE AT YOURSELF')}</button>`}
 function go(a){if(busy||!S||S.over||S.turn!==me)return;sfx('click');isHost?act(me,a):conn.send({t:'a',a})}
 $('#acts').onclick=e=>{const b=e.target.closest('button');if(!b||b.disabled)return;
  if(b.id==='again')return isHost?newGame():conn.send({t:'again'});
- if(b.id==='cancel'){stealMode=false;return renderActs()}
+ if(b.id==='aim')return toggleAim(true);if(b.id==='shoot')return shootNow();if(b.id==='cancel'){if(aimMode)return toggleAim(false);stealMode=false;return renderActs()}
  if(b.dataset.s!==undefined){stealMode=false;go({t:'r',r:'MAGNET',to:+b.dataset.s});return renderActs()}
- const t=+b.dataset.t;if(TOUCH&&armed!==t){armed=hover=t;sfx('lock');return renderActs()}armed=-1;go({t:'f',to:t})};
+ go({t:'f',to:+b.dataset.t})};
 $('#acts').addEventListener('pointerover',e=>{if(e.pointerType!=='mouse')return;const b=e.target.closest('button[data-t]'),t=b&&!b.disabled?+b.dataset.t:-1;if(t>=0&&t!==hover)sfx('lock');hover=t});
 $('#acts').addEventListener('pointerout',e=>{if(e.pointerType==='mouse')hover=-1});
 
 /* ---------- multiplayer (WebRTC via PeerJS, no game server) ---------- */
-const st=t=>$('#st').innerHTML=t,enter=()=>{$('#menu').hidden=true;$('#hud').hidden=false;inMenu=false;gameRoot.visible=true;menuRoot.visible=false;try{navigator.wakeLock&&navigator.wakeLock.request('screen').catch(()=>0)}catch{}layout();music()};
+const st=t=>$('#st').innerHTML=t,enter=()=>{$('#menu').hidden=true;$('#hud').hidden=false;inMenu=false;gameRoot.visible=true;menuRoot.visible=false;$('#mute').hidden=true;try{navigator.wakeLock&&navigator.wakeLock.request('screen').catch(()=>0)}catch{}layout();music()};
 function hostRoom(){const code=Math.random().toString(36).slice(2,6).toUpperCase();isHost=true;me=0;peer=new Peer('mfall-'+code);
  const lobby=()=>st(`Room <b>${code}</b><br>${location.href.split('#')[0]}#${code}<br>${cs.length+1} of 4 duelists seated. ${cs.length?'Start when ready.':'Waiting for opponents…'}`);
- peer.on('open',()=>{lobby();try{navigator.clipboard.writeText(location.href.split('#')[0]+'#'+code)}catch{}});
+ peer.on('open',()=>{lobby();const link=location.href.split('#')[0]+'#'+code,sh=$('#share');sh.hidden=false;sh.textContent='SHARE INVITE';sh.onclick=()=>{if(navigator.share)navigator.share({title:'Mirrorfall',text:'Join my Mirrorfall duel',url:link}).catch(()=>0);else try{navigator.clipboard.writeText(link);sh.textContent='LINK COPIED'}catch{}}});
  peer.on('error',e=>e.type==='unavailable-id'?hostRoom():st('Connection problem ('+e.type+'). Reload and try again.'));
  peer.on('connection',c=>{if(started||cs.length>=3)return c.close();c.on('open',()=>{cs.push(c);lobby();$('#start').hidden=false});
   c.on('data',m=>{const i=cs.indexOf(c)+1;if(m.t==='a')act(i,m.a);if(m.t==='again')newGame();if(m.t==='l'){gaze[i]=[m.y,m.p];cs.forEach(d=>d!==c&&d.open&&d.send({t:'g',i,y:m.y,p:m.p}))}});c.on('close',()=>{const i=cs.indexOf(c)+1;if(started)leave(i)})})}
@@ -354,7 +396,9 @@ const PN={multi:'#p-multi',opts:'#p-opts',cred:'#p-cred'};
 $('#main').onclick=e=>{const a=e.target.dataset.a;if(!a)return;AC.resume();try{screen.orientation.lock('landscape').catch(()=>0)}catch{}sfx('click');music();
  if(a==='start'){if(MOBILE&&canFull&&!document.fullscreenElement)toggleFull();solo=isHost=started=true;me=0;n=3;enter();newGame();return}
  if(a==='exit'){$('#bye').hidden=false;try{close()}catch{}return}
- Object.values(PN).forEach(p=>$(p).hidden=true);$(PN[a]).hidden=false};
+ Object.values(PN).forEach(p=>$(p).hidden=true);$(PN[a]).hidden=false;$('#main').hidden=true};
+document.querySelectorAll('.back').forEach(b=>b.onclick=()=>{sfx('click');Object.values(PN).forEach(p=>$(p).hidden=true);$('#main').hidden=false;$('#st').innerHTML='';$('#share').hidden=true;$('#start').hidden=true;if(!started&&peer){try{peer.destroy()}catch{}peer=null;conn=null;cs.length=0;isHost=false}});
+$('#code').onkeydown=e=>{if(e.key==='Enter')$('#join').click()};
 $('#opx').onclick=e=>{opt.px=!opt.px;DP.enabled=opt.px;fit();e.target.textContent='PIXEL LOOK: '+(opt.px?'ON':'OFF')};
 $('#views').onclick=e=>{const v=e.target.dataset.v;if(v)setView(v)};
 /* ---------- options, sound test, mobile helpers ---------- */
@@ -369,7 +413,11 @@ $('#oq').textContent='QUALITY: '+(opt.low?'LOW':'HIGH');
 $('#oq').onclick=e=>{opt.low=!opt.low;bloom.enabled=!opt.low;const m=opt.low?1024:2048;key.shadow.mapSize.set(m,m);if(key.shadow.map){key.shadow.map.dispose();key.shadow.map=null}fit();e.target.textContent='QUALITY: '+(opt.low?'LOW':'HIGH')};
 const canFull=!!(document.fullscreenEnabled||document.webkitFullscreenEnabled);
 function toggleFull(){const d=document,e=d.documentElement;try{if(d.fullscreenElement||d.webkitFullscreenElement)(d.exitFullscreen||d.webkitExitFullscreen).call(d);else(e.requestFullscreen||e.webkitRequestFullscreen).call(e)}catch{}}
-$('#ofs').onclick=toggleFull;$('#fs').onclick=toggleFull;if(canFull)$('#fs').hidden=false;else $('#ofs').hidden=true;
-$('#hint').innerHTML=MOBILE?'Drag to look<br>Tap an item twice to use it<br>Tap FIRE to aim, again to fire':'Drag to look<br>Keys 1 · 2 · 3 switch views<br>Click your tools to use them';
+$('#ofs').onclick=toggleFull;$('#gfs').onclick=toggleFull;if(!canFull){$('#ofs').hidden=true;$('#gfs').hidden=true}
+$('#hint').innerHTML=MOBILE?'Drag to look<br>AIM: drag the crosshair, tap SHOOT<br>Tap an item to use it, hold for info':'Drag to look<br>Views 1 · 2 · 3 · F aim · Space shoot<br>Click your tools to use them';
 addEventListener('contextmenu',e=>e.preventDefault());document.addEventListener('gesturestart',e=>e.preventDefault());
+$('#gm').onclick=()=>{const m=$('#gmenu');m.hidden=!m.hidden;$('#gsnd').textContent='SOUND: '+(mute?'OFF':'ON');$('#gq').textContent=$('#oq').textContent};
+$('#gsnd').onclick=e=>{$('#mute').click();e.target.textContent='SOUND: '+(mute?'OFF':'ON')};
+$('#gq').onclick=e=>{$('#oq').click();e.target.textContent=$('#oq').textContent};
+$('#gleave').onclick=()=>location.reload();
 </script></body></html>
