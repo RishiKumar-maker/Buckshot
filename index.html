@@ -75,6 +75,8 @@ button:disabled,#acts button:disabled{background:#fff;color:#000;opacity:.3}
 #ld{opacity:.6;font-size:18px;min-height:20px}
 #sh{max-width:44vw}.tn{font-size:22px;line-height:1.1;text-align:center}#hint{transition:opacity 1.5s}
 @media(max-height:520px){#views{flex-direction:column;gap:4px;align-items:flex-start}#views button{font-size:17px;min-height:32px;padding:0 10px}.tn{font-size:18px}#sh{max-width:46vw}}
+#nmw{display:grid;gap:2px;font-size:18px;color:#bbb;letter-spacing:.08em;margin-bottom:6px}#pname{font-size:26px;min-height:42px;width:min(280px,60vw);text-transform:none;letter-spacing:.04em}
+#mfs{position:fixed;right:calc(max(14px,env(safe-area-inset-right)) + 134px);bottom:max(10px,env(safe-area-inset-bottom));z-index:3;font-size:20px;padding:2px 12px;min-height:36px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"}}</script>
@@ -83,7 +85,7 @@ button:disabled,#acts button:disabled{background:#fff;color:#000;opacity:.3}
 <div id=hud hidden><div id=top><div id=sh></div></div><button id=gm>MENU</button><div id=gmenu hidden><button id=gsnd>SOUND: ON</button><button id=gq>QUALITY</button><button id=gfs>FULLSCREEN</button><button id=gleave>LEAVE GAME</button></div><div id=views><button data-v=seat class=on>1 SEAT</button><button data-v=items>2 MY ITEMS</button><button data-v=desk>3 WHOLE DESK</button></div><div id=xh hidden></div><div id=xl hidden></div><div id=selfzone hidden>AIM HERE TO TARGET YOURSELF</div><div id=toast></div><div id=log></div><div id=hint></div><div id=bot><div id=acts></div></div></div>
 <div id=tip hidden></div>
 <div id=menu><div id=brand><h1>MIRRORFALL</h1><p class=sub>A MULTIPLAYER GAME OF SHELLS<br>FOR TWO TO FOUR DUELISTS</p></div>
-<div id=side><nav id=main><a data-a=start>START</a><a data-a=multi>MULTIPLAYER</a><a data-a=opts>OPTIONS</a><a data-a=cred>CREDITS</a><a data-a=exit>EXIT</a></nav>
+<div id=side><nav id=main><label id=nmw>YOUR NAME<input id=pname maxlength=12 placeholder=PLAYER autocomplete=off autocapitalize=words spellcheck=false aria-label="Your name"></label><a data-a=start>START</a><a data-a=multi>MULTIPLAYER</a><a data-a=opts>OPTIONS</a><a data-a=cred>CREDITS</a><a data-a=exit>EXIT</a></nav>
 <div id=p-multi class=pn hidden><button class=back>BACK</button><button id=host>HOST A DUEL</button><button id=share hidden>SHARE INVITE</button><div class=row><input id=code maxlength=4 placeholder=CODE aria-label="Room code" autocomplete=off autocapitalize=characters spellcheck=false><button id=join>JOIN</button></div><button id=start hidden>START THE DUEL</button></div>
 <div id=p-opts class=pn hidden><button class=back>BACK</button><label>SOUND EFFECTS<input type=range id=vs min=0 max=100></label><label>MUSIC<input type=range id=vm min=0 max=100></label>
 <div class=row><select id=snd aria-label="Sound test"></select><button id=sndp>PLAY</button></div><p id=snds></p>
@@ -91,6 +93,7 @@ button:disabled,#acts button:disabled{background:#fff;color:#000;opacity:.3}
 <div id=p-cred class=pn hidden><button class=back>BACK</button><p>FIRE at anyone alive, or at yourself. LIVE shells wound. BLANKS do nothing, and a blank fired at yourself keeps your turn. MIRROR shells bounce the wound onto someone else. Last duelist standing wins the round; two rounds win the duel.</p><p>ITEMS: Cigarette +1 charge · Walkie-talkie hear the next shell · Knife next hit deals 2 · Hourglass reverse the shell order · Energy drink keep your turn after your next shot · Tongs pull out the next shell · Padlock block the next hit · Magnet aim at any item on the desk, even a dead player's, and steal it.</p><p>Made with three.js and PeerJS.</p></div>
 <p id=ld></p><p id=st></p><p id=bye hidden>You can close this tab now.</p></div></div>
 <div id=rot>ROTATE YOUR DEVICE<br><small>Mirrorfall plays in landscape</small></div>
+<button id=mfs hidden>FULLSCREEN</button>
 <button id=mute>Sound on</button>
 <script type="module">
 import * as THREE from 'three';
@@ -125,8 +128,13 @@ function music(){AC.resume();if(mute)return;const want=inMenu?'music_menu':'musi
 $('#mute').onclick=e=>{mute=!mute;e.target.textContent=mute?'Sound off':'Sound on';if(mute){if(mus)try{mus.stop()}catch{}mus=null;curTrack=''}else music()};
 
 /* ---------- 3D scene: title shell field + the square-table room ---------- */
-let n=2,me=0,camZ=6.8,shake=0,hpv=[3,3],wd=[0,0],hit=[0,0,0,0],holder=-1,hover=-1,fireAim=-2,inMenu=true,cntV={L:0,B:0,M:0},rl=0,lastAp=-1,hov=null,yaw=0,pitch=-.46,drag=null,dn=null,recoil=0,pump=null,pumpZ=-.55,gunMat=null,vtok=0,ceil=null,gaze=[],lookT=0,lastLook='',TOUCH=false,armed=-1,armedItem=null,aimMode=false,aimXY=[0,0],aimLock=-2,aimPt=null,aimDrag=false,curView='seat',lpT=0,lpO=null,aimKind='fire',aimItem=null;
+let names=[],n=2,me=0,camZ=6.8,shake=0,hpv=[3,3],wd=[0,0],hit=[0,0,0,0],holder=-1,hover=-1,fireAim=-2,inMenu=true,cntV={L:0,B:0,M:0},rl=0,lastAp=-1,hov=null,yaw=0,pitch=-.46,drag=null,dn=null,recoil=0,pump=null,pumpZ=-.55,gunMat=null,vtok=0,ceil=null,gaze=[],lookT=0,lastLook='',TOUCH=false,armed=-1,armedItem=null,aimMode=false,aimXY=[0,0],aimLock=-2,aimPt=null,aimDrag=false,curView='seat',lpT=0,lpO=null,aimKind='fire',aimItem=null;
 const MOBILE=matchMedia('(pointer:coarse)').matches||/Android|iPhone|iPad/i.test(navigator.userAgent),opt={px:true,low:MOBILE};
+const clean=v=>String(v||'').replace(/[^\p{L}\p{N} _.!?-]/gu,'').replace(/\s+/g,' ').trim().slice(0,12);
+let myName=clean((()=>{try{return localStorage.getItem('mf_name')}catch{return ''}})());
+const getName=()=>myName||'PLAYER';
+function dedupe(k){for(let i=0;i<k;i++){names[i]=names[i]||'PLAYER '+(i+1);const base=names[i];let c=1;while(names.slice(0,i).some(x=>x.toLowerCase()===names[i].toLowerCase()))names[i]=base+' '+(++c)}}
+
 const R=new THREE.WebGLRenderer({canvas:$('#c'),antialias:!MOBILE,powerPreference:'high-performance'});
 R.toneMapping=THREE.ACESFilmicToneMapping;R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;
 const W=new THREE.Scene();W.background=new THREE.Color(0x020202);W.fog=new THREE.FogExp2(0x030303,.035);
@@ -174,8 +182,8 @@ function lcd(){const cv=document.createElement('canvas');cv.width=256;cv.height=
  add(Mesh(new THREE.BoxGeometry(1.32,.57,.14),M(0x2a2824)),0,0,-.08,g).castShadow=true;add(Mesh(new THREE.PlaneGeometry(1.2,.45),new THREE.MeshBasicMaterial({map:tx,toneMapped:false})),0,0,0,g);g.scale.setScalar(1.1);gameRoot.add(g);return{g,c:cv.getContext('2d'),tx,key:''}}
 const lcds=[0,1,2,3].map(lcd),lcdC=lcd(),F='VT323,monospace';
 function bolt(c,x,y,s,col){c.fillStyle=col;c.beginPath();[[8,0],[0,14],[6,14],[2,28],[14,10],[8,10],[12,0]].forEach(([a,b],i)=>c[i?'lineTo':'moveTo'](x+a*s,y+b*s));c.fill()}
-function drawHp(L,p){const c=L.c,hp=hpv[p]||0,mx=S?S.mx:3,tn=!!S&&S.turn===p&&!S.over,k=[hp,mx,S?S.wins[p]:0,wd[p],S?S.chg[p]:0,S?S.ext[p]:0,tn].join();if(k===L.key)return;L.key=k;
- c.fillStyle='#06120a';c.fillRect(0,0,256,96);c.font='22px '+F;c.fillStyle=hex(COLS[p]);c.fillText((tn?'> ':'')+(p===me?'YOU':'PLAYER '+(p+1)),8,20);
+function drawHp(L,p){const c=L.c,hp=hpv[p]||0,mx=S?S.mx:3,tn=!!S&&S.turn===p&&!S.over,k=[hp,mx,S?S.wins[p]:0,wd[p],S?S.chg[p]:0,S?S.ext[p]:0,tn,names[p]].join();if(k===L.key)return;L.key=k;
+ c.fillStyle='#06120a';c.fillRect(0,0,256,96);c.font='22px '+F;c.fillStyle=hex(COLS[p]);c.fillText((tn?'> ':'')+(names[p]||'PLAYER '+(p+1))+(p===me?' (YOU)':''),8,20);
  if(hp<=0){c.fillStyle='#ff3b30';c.font='44px '+F;c.fillText('NO CHARGE',40,70)}else for(let i=0;i<mx;i++){c.shadowColor='#5dff7a';c.shadowBlur=i<hp?10:0;bolt(c,12+i*46,32,1.9,i<hp?'#5dff7a':'#123a1a')}
  c.shadowBlur=0;c.fillStyle='#9aa';c.font='20px '+F;c.fillText((wd[p]?'LOCK ':'')+(S&&S.chg[p]?'KNIFE ':'')+(S&&S.ext[p]?'ENERGY ':'')+'●'.repeat(S?S.wins[p]:0),8,90);L.tx.needsUpdate=true}
 function drawCnt(){const L=lcdC,c=L.c,k=cntV.L+','+cntV.B+','+cntV.M;if(k===L.key)return;L.key=k;c.fillStyle='#06120a';c.fillRect(0,0,256,96);c.font='46px '+F;
@@ -213,10 +221,17 @@ function arrive(p,o,delay){const from=crates[p].position.clone().add(V(0,.6,0));
  (async()=>{await sleep(delay);o.visible=true;sfx('item_pop');burst(from,0xb08a3e,8,1.5);await tw(800,u=>{const t=slotPos(p,Math.max(0,items[p].indexOf(o)));o.position.lerpVectors(from,t,u);o.position.y+=Math.sin(u*Math.PI)*2.4;o.rotation.y+=.2;o.scale.setScalar(.3+.7*Math.min(1,u*2))});o.scale.setScalar(1);o.userData.fly=0;sfx('item_land');burst(o.position,0xe8e2d4,6,1)})()}
 function syncItems(){for(let p=0;p<n;p++){const want=[...S.rel[p]],cur=items[p];for(let i=cur.length-1;i>=0;i--){const k=want.indexOf(cur[i].userData.type);if(k<0){gameRoot.remove(cur[i]);cur.splice(i,1)}else want.splice(k,1)}
  if(!want.length)continue;sfx('crate_open');lidTo(p,-1.45);want.forEach((t,j)=>{const o=mkItem(t,p);cur.push(o);gameRoot.add(o);arrive(p,o,450+p*220+j*300)});setTimeout(()=>lidTo(p,0),450+p*220+want.length*300+900)}}
+/* name tags above each player's head */
+const tags=[0,1,2,3].map(s=>{if(!s)return null;const c=document.createElement('canvas');c.width=256;c.height=64;const tx=new THREE.CanvasTexture(c);tx.colorSpace=THREE.SRGBColorSpace;
+ const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tx,transparent:true,depthTest:false,fog:false}));sp.renderOrder=15;sp.scale.set(2.6,.65,1);sp.userData={c,tx};gameRoot.add(sp);return sp});
+function drawTag(s,p){const sp=tags[s],{c,tx}=sp.userData,x=c.getContext('2d'),name=names[p]||'PLAYER '+(p+1);x.clearRect(0,0,256,64);x.fillStyle='#000000c8';x.fillRect(4,6,248,46);x.fillStyle=hex(COLS[p]);x.fillRect(4,52,248,6);
+ x.fillStyle='#fff';let f=38;x.font=f+'px VT323,monospace';while(x.measureText(name).width>232&&f>16){f-=2;x.font=f+'px VT323,monospace'}x.textAlign='center';x.textBaseline='middle';x.fillText(name,128,30);tx.needsUpdate=true}
+const refreshTags=()=>{for(let s=1;s<n;s++)drawTag(s,(me+s)%n)};
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if(!inMenu)refreshTags()});
 function layout(){camZ=n>2?7.8:7;home();
  for(let p=0;p<4;p++){const L=lcds[p];L.g.visible=p<n;if(p<n){const s=seat(p),a=ang(s);L.g.position.copy(dir(s).multiplyScalar(3.75).add(V(Math.cos(a),0,-Math.sin(a)).multiplyScalar(2.45))).setY(1.25);L.g.lookAt(0,5,camZ);L.key=''}}
  lcdC.g.position.set(0,1.6,-2.1);lcdC.g.scale.setScalar(1.7);lcdC.g.lookAt(0,5,camZ);lcdC.key='';lcdC.g.visible=false;crates.forEach((c,p)=>{c.visible=p<n;if(p<n){const s=seat(p),a=ang(s);c.position.copy(dir(s).multiplyScalar(3.55).add(V(Math.cos(a),0,-Math.sin(a)).multiplyScalar(3.4))).setY(.975);c.rotation.y=a+Math.PI;c.scale.setScalar(.75)}});
- for(let s=1;s<4;s++){const f=figs[s],p=(me+s)%n;f.visible=s<n;if(s<n){f.position.copy(seatPos(s));f.lookAt(0,0,0);f.userData.eyes.forEach(m=>m.emissive.set(COLS[p]));f.userData.sh.material.color.set(COLS[p]);dress(s,p)}}
+ for(let s=1;s<4;s++){const f=figs[s],p=(me+s)%n;f.visible=s<n;if(s<n){f.position.copy(seatPos(s));f.lookAt(0,0,0);f.userData.eyes.forEach(m=>m.emissive.set(COLS[p]));f.userData.sh.material.color.set(COLS[p]);dress(s,p);drawTag(s,p)}tags[s].visible=s<n}
  items.forEach(a=>{a.forEach(o=>gameRoot.remove(o));a.length=0});hpv=Array(n).fill(3);wd=Array(n).fill(0);holder=-1}
 /* particles */
 const N=MOBILE?160:320,pp=new Float32Array(N*3).fill(-99),pc=new Float32Array(N*3),pb=new Float32Array(N*3),pv=new Float32Array(N*3),pl=new Float32Array(N),pg=new THREE.BufferGeometry();let pi=0;
@@ -232,14 +247,14 @@ function setView(k){const[p,y,pt]=VIEWS[k](),p0=cp.clone(),y0=Math.atan2(Math.si
  tw(800,u=>{if(id!==vtok)return;const e=u*u*(3-2*u);cp.lerpVectors(p0,p,e);yaw=y0+(y-y0)*e;pitch=pt0+(pt-pt0)*e})}
 function markView(k){curView=k;document.querySelectorAll('#views button').forEach(b=>b.classList.toggle('on',b.dataset.v===k))}
 const myTurn=()=>!!S&&S.turn===me&&!busy&&!S.over&&S.hp[me]>0;
-addEventListener('keydown',e=>{if(e.code==='KeyR'||e.code==='Digit1')setView('seat');if(e.code==='Digit2')setView('items');if(e.code==='Digit3')setView('desk');if(e.code==='KeyF')toggleAim();if(e.code==='Space'&&aimMode){e.preventDefault();shootNow()}if(e.code==='Escape'&&aimMode)toggleAim(false)});
+addEventListener('keydown',e=>{if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT')return;if(e.code==='KeyR'||e.code==='Digit1')setView('seat');if(e.code==='Digit2')setView('items');if(e.code==='Digit3')setView('desk');if(e.code==='KeyF')toggleAim();if(e.code==='Space'&&aimMode){e.preventDefault();shootNow()}if(e.code==='Escape'&&aimMode)toggleAim(false)});
 function pickItem(e,any){if(!any&&!myTurn())return null;mp.set(e.clientX/innerWidth*2-1,-e.clientY/innerHeight*2+1);ray.setFromCamera(mp,cam);const h=ray.intersectObjects(items[me].filter(o=>!o.userData.fly),true)[0];if(!h)return null;let o=h.object;while(o&&!o.userData.type)o=o.parent;return o}
 function showTip(o,e,t){const tp=$('#tip');tp.hidden=false;tp.textContent=RL[o.userData.type].join(' · ')+(t?'  (tap again to use)':'');tp.style.left=Math.max(4,Math.min(e.clientX+14,innerWidth-280))+'px';tp.style.top=e.clientY+14+'px'}
 const tipOff=()=>{$('#tip').hidden=true};
 /* aim and shoot: steer a crosshair over the scene, it locks onto a player (or yourself in the bottom zone), SHOOT fires */
 const aimTo=e=>{aimXY=[e.clientX,e.clientY-(e.pointerType==='touch'&&aimKind==='fire'?64:0)]};
 const stealItems=()=>{const r=[];for(let p=0;p<n;p++)if(p!==me)items[p].forEach(o=>{if(!o.userData.fly)r.push(o)});return r};
-function aimUI(){const st=aimKind==='steal',it=aimItem;$('#xl').textContent=st?(it?RL[it.userData.type][0].toUpperCase()+' · PLAYER '+(it.userData.p+1)+(S&&S.hp[it.userData.p]<=0?' (DEAD)':''):'NO ITEM'):aimLock===-2?'NO TARGET':aimLock===me?'YOURSELF':'PLAYER '+(aimLock+1);$('#xh').classList.toggle('lock',st?!!it:aimLock>-2)}
+function aimUI(){const st=aimKind==='steal',it=aimItem;$('#xl').textContent=st?(it?RL[it.userData.type][0].toUpperCase()+' · '+(names[it.userData.p]||'PLAYER '+(it.userData.p+1))+(S&&S.hp[it.userData.p]<=0?' (DEAD)':''):'NO ITEM'):aimLock===-2?'NO TARGET':aimLock===me?'YOURSELF':(names[aimLock]||'PLAYER '+(aimLock+1));$('#xh').classList.toggle('lock',st?!!it:aimLock>-2)}
 function updateAim(){const tr=`translate(${aimXY[0]}px,${aimXY[1]}px)`;$('#xh').style.transform=tr;$('#xl').style.transform=tr;
  if(aimKind==='steal'){let best=null,bd=Math.max(56,innerHeight*.08);const v=new THREE.Vector3();stealItems().forEach(o=>{o.getWorldPosition(v);v.y+=.2;v.project(cam);if(v.z>1)return;const d=Math.hypot((v.x+1)/2*innerWidth-aimXY[0],(1-v.y)/2*innerHeight-aimXY[1]);if(d<bd){bd=d;best=o}});
   if(best!==aimItem){aimItem=best;if(best)sfx('lock');aimUI();renderActs()}return}
@@ -273,7 +288,7 @@ R.setAnimationLoop(()=>{T.update();if(innerHeight>innerWidth)return;const dt=Mat
   u.fs+=((dead?.1:1)-u.fs)*Math.min(1,dt*4);f.scale.set(1+hit[p]*.1,Math.max(.05,u.fs),1+hit[p]*.1);u.piv.position.y=2.6+Math.sin(t*1.1+s)*.08;const gz=gaze[p];let ty,tx;
   if(gz){ty=Math.max(-1.1,Math.min(1.1,gz[0]));tx=-gz[1]*.9+.12}else{const l=f.worldToLocal(cam.position.clone());ty=Math.max(-1.1,Math.min(1.1,Math.atan2(l.x,l.z)));tx=-Math.atan2(l.y-2.6,Math.hypot(l.x,l.z))*.7}
   u.piv.rotation.y+=(ty-u.piv.rotation.y)*Math.min(1,dt*5);u.piv.rotation.x+=(tx-u.piv.rotation.x)*Math.min(1,dt*5);u.piv.rotation.z=Math.sin(t*.7+s)*.04;
-  u.eyes.forEach(m=>m.emissiveIntensity=5+hit[p]*20+Math.sin(t*3+s));u.sh.visible=!!wd[p];u.sh.rotation.y=t*.4;
+  u.eyes.forEach(m=>m.emissiveIntensity=5+hit[p]*20+Math.sin(t*3+s));{const tg=tags[s],k=hold?1.15:1;tg.position.set(f.position.x,3.4+Math.sin(t*1.1+s)*.08,f.position.z);tg.material.opacity=dead?.35:1;tg.scale.set(2.6*k,.65*k,1)}u.sh.visible=!!wd[p];u.sh.rotation.y=t*.4;
   u.hands.forEach((h,i)=>{h.visible=!dead;let tp,tq;if(hold){tp=rig.localToWorld(V(0,i?-.18:-.1,i?.4:-.55));tq=rig.getWorldQuaternion(new THREE.Quaternion()).multiply(qY)}else{tp=f.localToWorld(V(i?1.4:-1.4,1.06,1.2));tq=f.quaternion}
    h.position.lerp(tp,Math.min(1,dt*8));h.quaternion.slerp(tq,Math.min(1,dt*8))})}
  hit=hit.map(x=>x*.9);for(let p=0;p<n;p++)drawHp(lcds[p],p);if(lcdC.g.visible)drawCnt();
@@ -293,7 +308,7 @@ async function loadShells(cn){const types=[...'L'.repeat(cn.L),...'M'.repeat(cn.
 
 /* ---------- game (host-authoritative, 2 to 4 players) ---------- */
 let G,S,solo=false,isHost=false,started=false,conn,peer,busy=false,chain=Promise.resolve();const cs=[];
-const shuf=a=>a.sort(()=>Math.random()-.5),pick=()=>{const k=Object.keys(RL);return k[rnd(k.length)]},nm=p=>p===me?'You':'Player '+(p+1);
+const shuf=a=>a.sort(()=>Math.random()-.5),pick=()=>{const k=Object.keys(RL);return k[rnd(k.length)]},nm=p=>p===me?'You':names[p]||'Player '+(p+1);
 const nextAlive=p=>{for(let i=1;i<=n;i++){const q=(p+i)%n;if(G.hp[q]>0)return q}return p};
 const view=i=>({hp:[...G.hp],mx:G.mx,ward:[...G.ward],chg:[...G.chg],ext:[...G.ext],rel:G.rel.map(a=>[...a]),cnt:{...G.cnt},turn:G.turn,wins:[...G.wins],pk:G.pk[i],over:G.over});
 function reload(evs){const t=4+rnd(7),L=1+rnd(Math.min(t-2,Math.ceil(t*.7))),Mi=Math.min(rnd(3),t-L-1);G.q=shuf([...Array(L).fill('L'),...Array(Mi).fill('M'),...Array(t-L-Mi).fill('B')]);G.cnt={L,M:Mi,B:t-L-Mi};G.pk=Array(n).fill(null);
@@ -371,7 +386,7 @@ function hud(){if(!S)return;syncItems();hover=-1;armed=-1;armedItem=null;tipOff(
  $('#sh').innerHTML=`<div class=tn>${S.over?(S.wins[me]>1?'YOU WIN THE DUEL':nm(S.wins.indexOf(2)).toUpperCase()+' WINS THE DUEL'):!alive?'YOU ARE DEAD. WATCHING…':my?(TOUCH?'YOUR TURN: TAP A TOOL OR A TARGET':'YOUR TURN: PICK A TOOL OR A TARGET'):nm(S.turn).toUpperCase()+' HAS THE SHOTGUN'}${my&&S.pk?' · NEXT SHELL: '+NAME[S.pk].toUpperCase():''}</div>`;renderActs()}
 function renderActs(){if(!S)return;const alive=S.hp[me]>0,my=S.turn===me&&!S.over&&alive,foes=[...Array(n).keys()].filter(p=>p!==me&&S.hp[p]>0),en=my&&!busy?'':'disabled';
  $('#acts').innerHTML=S.over?'<button id=again>PLAY AGAIN</button>':!alive?'':aimMode?`<button id=shoot ${(aimKind==='steal'?aimItem:aimLock!==-2)?'':'disabled'}>${aimKind==='steal'?'STEAL':'SHOOT'}</button><button id=cancel>CANCEL</button>`
- :`<button id=aim ${en}>AIM</button>`+foes.map(p=>`<button data-t=${p} ${en}>FIRE AT PLAYER ${p+1}</button>`).join('')+`<button data-t=${me} ${en}>FIRE AT YOURSELF</button>`}
+ :`<button id=aim ${en}>AIM</button>`+foes.map(p=>`<button data-t=${p} ${en}>FIRE AT ${names[p]||'PLAYER '+(p+1)}</button>`).join('')+`<button data-t=${me} ${en}>FIRE AT YOURSELF</button>`}
 function go(a){if(busy||!S||S.over||S.turn!==me)return;sfx('click');isHost?act(me,a):conn.send({t:'a',a})}
 $('#acts').onclick=e=>{const b=e.target.closest('button');if(!b||b.disabled)return;
  if(b.id==='again')return isHost?newGame():conn.send({t:'again'});
@@ -382,25 +397,25 @@ $('#acts').addEventListener('pointerover',e=>{if(e.pointerType!=='mouse')return;
 $('#acts').addEventListener('pointerout',e=>{if(e.pointerType==='mouse')hover=-1});
 
 /* ---------- multiplayer (WebRTC via PeerJS, no game server) ---------- */
-const st=t=>$('#st').innerHTML=t,enter=()=>{$('#menu').hidden=true;$('#hud').hidden=false;inMenu=false;gameRoot.visible=true;menuRoot.visible=false;$('#mute').hidden=true;$('#hint').style.opacity=1;setTimeout(()=>{$('#hint').style.opacity=0},9000);try{navigator.wakeLock&&navigator.wakeLock.request('screen').catch(()=>0)}catch{}layout();music()};
+const st=t=>$('#st').innerHTML=t,enter=()=>{$('#menu').hidden=true;$('#hud').hidden=false;inMenu=false;gameRoot.visible=true;menuRoot.visible=false;$('#mute').hidden=true;$('#mfs').hidden=true;$('#hint').style.opacity=1;setTimeout(()=>{$('#hint').style.opacity=0},9000);try{navigator.wakeLock&&navigator.wakeLock.request('screen').catch(()=>0)}catch{}layout();music()};
 function hostRoom(){const code=Math.random().toString(36).slice(2,6).toUpperCase();isHost=true;me=0;peer=new Peer('mfall-'+code);
  const lobby=()=>st(`Room <b>${code}</b><br>${location.href.split('#')[0]}#${code}<br>${cs.length+1} of 4 duelists seated. ${cs.length?'Start when ready.':'Waiting for opponents…'}`);
  peer.on('open',()=>{lobby();const link=location.href.split('#')[0]+'#'+code,sh=$('#share');sh.hidden=false;sh.textContent='SHARE INVITE';sh.onclick=()=>{if(navigator.share)navigator.share({title:'Mirrorfall',text:'Join my Mirrorfall duel',url:link}).catch(()=>0);else try{navigator.clipboard.writeText(link);sh.textContent='LINK COPIED'}catch{}}});
  peer.on('error',e=>e.type==='unavailable-id'?hostRoom():st('Connection problem ('+e.type+'). Reload and try again.'));
  peer.on('connection',c=>{if(started||cs.length>=3)return c.close();c.on('open',()=>{cs.push(c);lobby();$('#start').hidden=false});
-  c.on('data',m=>{const i=cs.indexOf(c)+1;if(m.t==='a')act(i,m.a);if(m.t==='again')newGame();if(m.t==='l'){gaze[i]=[m.y,m.p];cs.forEach(d=>d!==c&&d.open&&d.send({t:'g',i,y:m.y,p:m.p}))}});c.on('close',()=>{const i=cs.indexOf(c)+1;if(started)leave(i)})})}
+  c.on('data',m=>{const i=cs.indexOf(c)+1;if(m.t==='nm')names[i]=clean(m.v)||'PLAYER '+(i+1);if(m.t==='a')act(i,m.a);if(m.t==='again')newGame();if(m.t==='l'){gaze[i]=[m.y,m.p];cs.forEach(d=>d!==c&&d.open&&d.send({t:'g',i,y:m.y,p:m.p}))}});c.on('close',()=>{const i=cs.indexOf(c)+1;if(started)leave(i)})})}
 function joinRoom(code){code=code.trim().toUpperCase();if(code.length<4)return st('Enter the 4-letter room code.');isHost=false;st('Connecting…');peer=new Peer();
- peer.on('open',()=>{conn=peer.connect('mfall-'+code,{reliable:true});conn.on('open',()=>st('Seated. Waiting for the host to start the duel…'));
-  conn.on('data',m=>{if(m.t==='hi'){me=m.me;n=m.n;enter()}else if(m.t==='u')run(m);else if(m.t==='g')gaze[m.i]=[m.y,m.p]});conn.on('close',()=>toast('Host left','var(--live)'));setTimeout(()=>{if(!conn.open)st('No room found for that code.')},10000)});
+ peer.on('open',()=>{conn=peer.connect('mfall-'+code,{reliable:true});conn.on('open',()=>{conn.send({t:'nm',v:getName()});st('Seated. Waiting for the host to start the duel…')});
+  conn.on('data',m=>{if(m.t==='hi'){me=m.me;n=m.n;names=m.names;enter()}else if(m.t==='u')run(m);else if(m.t==='g')gaze[m.i]=[m.y,m.p]});conn.on('close',()=>toast('Host left','var(--live)'));setTimeout(()=>{if(!conn.open)st('No room found for that code.')},10000)});
  peer.on('error',e=>st(e.type==='peer-unavailable'?'No room found for that code.':'Connection problem ('+e.type+').'))}
 $('#host').onclick=()=>{AC.resume();hostRoom()};$('#join').onclick=()=>{AC.resume();joinRoom($('#code').value)};
-$('#start').onclick=()=>{started=true;n=cs.length+1;cs.forEach((c,k)=>c.send({t:'hi',me:k+1,n}));enter();newGame()};
+$('#start').onclick=()=>{started=true;n=cs.length+1;names[0]=getName();dedupe(n);cs.forEach((c,k)=>c.send({t:'hi',me:k+1,n,names}));enter();newGame()};
 
 if(/^#[A-Za-z0-9]{4}$/.test(location.hash))$('#code').value=location.hash.slice(1);
 /* ---------- title screen ---------- */
 const PN={multi:'#p-multi',opts:'#p-opts',cred:'#p-cred'};
-$('#main').onclick=e=>{const a=e.target.dataset.a;if(!a)return;AC.resume();try{screen.orientation.lock('landscape').catch(()=>0)}catch{}sfx('click');music();
- if(a==='start'){if(MOBILE&&canFull&&!document.fullscreenElement)toggleFull();solo=isHost=started=true;me=0;n=3;enter();newGame();return}
+$('#main').onclick=e=>{const a=e.target.dataset.a;if(!a)return;AC.resume();if(MOBILE&&canFull&&!document.fullscreenElement)toggleFull();try{screen.orientation.lock('landscape').catch(()=>0)}catch{}sfx('click');music();
+ if(a==='start'){if(MOBILE&&canFull&&!document.fullscreenElement)toggleFull();solo=isHost=started=true;me=0;n=3;names=[getName(),'BOT 1','BOT 2'];dedupe(3);enter();newGame();return}
  if(a==='exit'){$('#bye').hidden=false;try{close()}catch{}return}
  Object.values(PN).forEach(p=>$(p).hidden=true);$(PN[a]).hidden=false;$('#main').hidden=true};
 document.querySelectorAll('.back').forEach(b=>b.onclick=()=>{sfx('click');Object.values(PN).forEach(p=>$(p).hidden=true);$('#main').hidden=false;$('#st').innerHTML='';$('#share').hidden=true;$('#start').hidden=true;if(!started&&peer){try{peer.destroy()}catch{}peer=null;conn=null;cs.length=0;isHost=false}});
@@ -419,12 +434,13 @@ $('#oq').textContent='QUALITY: '+(opt.low?'LOW':'HIGH');
 $('#oq').onclick=e=>{opt.low=!opt.low;bloom.enabled=!opt.low;const m=opt.low?1024:2048;key.shadow.mapSize.set(m,m);if(key.shadow.map){key.shadow.map.dispose();key.shadow.map=null}fit();e.target.textContent='QUALITY: '+(opt.low?'LOW':'HIGH')};
 const canFull=!!(document.fullscreenEnabled||document.webkitFullscreenEnabled);
 function toggleFull(){const d=document,e=d.documentElement;try{if(d.fullscreenElement||d.webkitFullscreenElement)(d.exitFullscreen||d.webkitExitFullscreen).call(d);else(e.requestFullscreen||e.webkitRequestFullscreen).call(e)}catch{}}
-$('#ofs').onclick=toggleFull;$('#gfs').onclick=toggleFull;if(!canFull){$('#ofs').hidden=true;$('#gfs').hidden=true}
+$('#mfs').onclick=toggleFull;$('#mfs').hidden=!canFull;$('#ofs').onclick=toggleFull;$('#gfs').onclick=toggleFull;if(!canFull){$('#ofs').hidden=true;$('#gfs').hidden=true}
 $('#hint').innerHTML=MOBILE?'Drag to look<br>AIM: drag the crosshair, tap SHOOT<br>Tap an item to use it, hold for info':'Drag to look<br>Views 1 · 2 · 3 · F aim · Space shoot<br>Click your tools to use them';
 addEventListener('contextmenu',e=>e.preventDefault());document.addEventListener('gesturestart',e=>e.preventDefault());
+const pn=$('#pname');pn.value=myName;pn.oninput=()=>{myName=clean(pn.value);try{localStorage.setItem('mf_name',myName)}catch{}};pn.onchange=()=>{pn.value=myName};pn.onkeydown=e=>{if(e.key==='Enter')pn.blur()};
 $('#gm').onclick=()=>{const m=$('#gmenu');m.hidden=!m.hidden;$('#gsnd').textContent='SOUND: '+(mute?'OFF':'ON');$('#gq').textContent=$('#oq').textContent};
 $('#gsnd').onclick=e=>{$('#mute').click();e.target.textContent='SOUND: '+(mute?'OFF':'ON')};
 $('#gq').onclick=e=>{$('#oq').click();e.target.textContent=$('#oq').textContent};
 $('#gleave').onclick=()=>location.reload();
-if(/[?&]debug/.test(location.search))window.__mf={act,get G(){return G},get S(){return S},items,cam,scr:o=>{const v=o.getWorldPosition(new THREE.Vector3()).project(cam);return[(v.x+1)/2*innerWidth,(1-v.y)/2*innerHeight]},head:p=>{const v=headPos(p).clone().project(cam);return[(v.x+1)/2*innerWidth,(1-v.y)/2*innerHeight]},give:(p,t)=>{G.rel[p].push(t);dispatch([{k:'sync'}])}};
+if(/[?&]debug/.test(location.search))window.__mf={act,get G(){return G},get S(){return S},items,cam,get names(){return names},scr:o=>{const v=o.getWorldPosition(new THREE.Vector3()).project(cam);return[(v.x+1)/2*innerWidth,(1-v.y)/2*innerHeight]},head:p=>{const v=headPos(p).clone().project(cam);return[(v.x+1)/2*innerWidth,(1-v.y)/2*innerHeight]},give:(p,t)=>{G.rel[p].push(t);dispatch([{k:'sync'}])}};
 </script></body></html>
